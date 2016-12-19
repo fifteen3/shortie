@@ -1,0 +1,17 @@
+click==6.6
+Flask==0.11.1
+Flask-Script==2.0.5
+gunicorn==19.6.0
+itsdangerous==0.24
+Jinja2==2.8
+MarkupSafe==0.23
+meld3==1.0.2
+neo4j-driver==1.0.2
+py==1.4.31
+py2neo==3.1.2
+pytest==3.0.5
+pytest-flask==0.10.0
+supervisor==3.3.1
+ua-parser==0.7.2
+user-agents==1.0.1
+Werkzeug==0.11.11
