@@ -26,3 +26,9 @@ def test_shorten_url():
     shortie = api.shorten_url(long_hash)
     assert long_hash[:7] in  shortie
 
+def test_get_user_id():
+    email = 'jason@seaver.com'
+    actual_user_id = api.get_user_id(email)
+    expected = 1
+    assert (expected == actual_user_id)
+
