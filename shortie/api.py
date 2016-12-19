@@ -1,6 +1,8 @@
 from flask import Flask, request, abort, redirect
 from werkzeug.contrib.fixers import ProxyFix
+import json
 import hashlib
+import sqlite3
 import db
 
 app = Flask(__name__)
@@ -10,6 +12,47 @@ app.wsgi_app = ProxyFix(app.wsgi_app)
 def root_route():
     return "Welcome to Shortie."
 
+
+@app.route("/shorten", methods=["POST"])
+def shorten():
+    if  not request.get_json():
+        abort(400)
+    data = []
+    errors = []
+    urls =  request.get_json()['urls']
+    user = request.get_json()['user']
+    # desktop will be the url used to hash
+    url =  request.get_json()['urls']['desktop']
+    encoded_url = encode_url(url,user)
+    store_urls(urls,encoded_url,user)
+    shortened_url = "https://localhost:5000/%s" % encoded_url[:7]
+
+    if (True):
+        data.append({ "shortie" : shortened_url })
+    else:
+        errors.append({"message" : "save failed."})
+    return format_json_response(data,errors)
+
+def store_urls(urls,encoded_url,user):
+    conn = db.get_db()
+    c = conn.cursor()
+    if not c:
+        return "Database connection Error."
+    #generate the uuid and insert it and
+    shortie = encoded_url[:7]
+    try:
+        insert_hash_query = 'INSERT INTO url_hashes (short_hash,long_hash,user_id) VALUES (?,?,?)'
+        user_id = get_user_id(user)
+        c.execute(insert_hash_query, [shortie,encoded_url,user_id])
+        for url_type,url in urls.iteritems():
+            try:
+                insert_url_query = 'INSERT INTO urls (short_hash,url_type,url) VALUES (?,?,?)'
+                c.execute(insert_url_query, [shortie, url_type, url])
+            except sqlite3.Error as e:
+                print e.message
+    except sqlite3.Error as e:
+       print e.message
+    conn.commit()
 
 def get_user_id(email):
     c = db.get_db().cursor()
@@ -22,6 +65,17 @@ def get_user_id(email):
         return user_id
     except (TypeError,sqlite3.Error) as e:
         print e.message
+
+
+def format_json_response(data,errors):
+    meta = {}
+    meta["errors"] = errors
+    meta["total"] = len(data)
+    response = {}
+    response['data'] = data
+    response['meta'] = meta
+    return json.dumps(response)
+
 
 def shorten_url(long_hash):
     host = 'http://localhost:5000'

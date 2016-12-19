@@ -1,4 +1,5 @@
 import pytest
+import json
 import re
 from shortie import api
 
@@ -32,3 +33,10 @@ def test_get_user_id():
     expected = 1
     assert (expected == actual_user_id)
 
+def test_store_urls(client):
+    urls = { 'desktop' : 'https://test.desktop', 'mobile' : 'https://test.mobile', 'tablet' : 'https://test.tablet'}
+    payload = json.dumps({ 'user' : 'jason@seaver.com', 'urls' : urls })
+    expected =  api.encode_url(urls['desktop'],'jason@seaver.com')[:7]
+    response = client.post('/shorten', data=payload, content_type = 'application/json')
+    actual = json.loads(response.data)
+    assert (expected in actual['data'][0]['shortie'])
