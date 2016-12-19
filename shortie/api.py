@@ -28,14 +28,14 @@ def short_route(url_hash):
 
     abort(404)
 
-@app.route("/shorten", methods=["POST"])
-def shorten():
+@app.route("/api/v1/user/<user_id>/urls", methods=["POST"])
+def shorten(user_id):
     if  not request.get_json():
         abort(400)
     data = []
     errors = []
     urls =  request.get_json()['urls']
-    user = request.get_json()['user']
+    user = user_id #request.get_json()['user']
     # desktop will be the url used to hash
     url =  request.get_json()['urls']['desktop']
     encoded_url = encode_url(url,user)
