@@ -1,7 +1,6 @@
 import sqlite3
 import hashlib
 import user_agents
-import db
 
 class UrlEncoder:
     def __init__(self,**kwargs):
@@ -17,6 +16,7 @@ class UrlEncoder:
 
 class UrlFinder:
     def __init__(self,**kwargs):
+        self.db = kwargs.get('db')
         self.url = kwargs.get('url')
         self.url_hash = kwargs.get('url_hash')
         self.ua_string = kwargs.get('ua_string')
@@ -33,7 +33,7 @@ class UrlFinder:
     def lookup_url(self):
         url_hash = self.url_hash
         device = self.lookup_device_type()
-        conn = db.get_db()
+        conn = self.db.get_db()
         c = conn.cursor()
         c.execute('SELECT url FROM urls WHERE short_hash = ? AND url_type = ?', [url_hash, device])
         url = c.fetchone()[0]
