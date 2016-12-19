@@ -36,14 +36,16 @@ class UrlFinder:
         conn = self.db.get_db()
         c = conn.cursor()
         c.execute('SELECT url FROM urls WHERE short_hash = ? AND url_type = ?', [url_hash, device])
-        url = c.fetchone()[0]
-        if url:
-            try:
-                c.execute('INSERT INTO visits (short_hash,url_type) VALUES (?,?)', [url_hash,device])
-                conn.commit()
-            except sqlite3.Error as e:
-                print e.message
-            return url
+        result = c.fetchone()
+        if result:
+            url = result[0]
+            if url:
+                try:
+                    c.execute('INSERT INTO visits (short_hash,url_type) VALUES (?,?)', [url_hash,device])
+                    conn.commit()
+                except sqlite3.Error as e:
+                    print e.message
+                return url
 
 class UrlSaver:
 
