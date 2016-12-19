@@ -1,7 +1,9 @@
 from flask import Flask, request, abort, redirect
 from werkzeug.contrib.fixers import ProxyFix
+import user_agents
 import json
 import hashlib
+import re
 import sqlite3
 import db
 
@@ -12,6 +14,19 @@ app.wsgi_app = ProxyFix(app.wsgi_app)
 def root_route():
     return "Welcome to Shortie."
 
+@app.route("/<url_hash>")
+def short_route(url_hash):
+
+    data = []
+    errors = []
+    if (re.match("[A-Za-z0-9]{7,10}",url_hash)):
+        ua_string = request.headers.get('User-Agent');
+        device = lookup_device_type(ua_string)
+        url = lookup_url(url_hash,device)
+        if url:
+            return redirect(url,code=302)
+
+    abort(404)
 
 @app.route("/shorten", methods=["POST"])
 def shorten():
@@ -66,7 +81,6 @@ def get_user_id(email):
     except (TypeError,sqlite3.Error) as e:
         print e.message
 
-
 def format_json_response(data,errors):
     meta = {}
     meta["errors"] = errors
@@ -75,7 +89,6 @@ def format_json_response(data,errors):
     response['data'] = data
     response['meta'] = meta
     return json.dumps(response)
-
 
 def shorten_url(long_hash):
     host = 'http://localhost:5000'
@@ -89,6 +102,27 @@ def encode_url(url,user):
     long_hash = m.hexdigest()
     return long_hash
 
+def lookup_url(url_hash,device):
+    conn = db.get_db()
+    c = conn.cursor()
+    c.execute('SELECT url FROM urls WHERE short_hash = ? AND url_type = ?', [url_hash, device])
+    url = c.fetchone()[0]
+    if url:
+        try:
+            c.execute('INSERT INTO visits (short_hash,url_type) VALUES (?,?)', [url_hash,device])
+            conn.commit()
+        except sqlite3.Error as e:
+            print e.message
+        return url
+
+def lookup_device_type(ua_string):
+    dt = "desktop"
+    ua = user_agents.parse(ua_string)
+    if ua.is_mobile:
+        dt = "mobile"
+    elif ua.is_tablet:
+        dt = "tablet"
+    return dt
 
 if __name__ == '__main__':
     app.run()

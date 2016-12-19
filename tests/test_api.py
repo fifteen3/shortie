@@ -40,3 +40,29 @@ def test_store_urls(client):
     response = client.post('/shorten', data=payload, content_type = 'application/json')
     actual = json.loads(response.data)
     assert (expected in actual['data'][0]['shortie'])
+
+def test_redirect_desktop(client):
+    expected = 'https://test.desktop'
+    actual = True
+    ua_string = '''Mozilla/5.0 (MacOs) AppleWebKit/534.46 (KHTML, like Gecko)'''
+    headers = { 'User-Agent' : ua_string }
+    short_url = '/50617f9'
+    actual = client.get(short_url,headers=headers).data
+    assert (expected in actual)
+
+def test_redirect_mobile(client):
+    expected = 'https://test.mobile'
+    actual = True
+    ua_string = '''Mozilla/5.0 (iPhone; CPU iPhone OS 5_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B179 Safari/7534.48.3'''
+    headers = { 'User-Agent' : ua_string }
+    short_url = '/50617f9'
+    actual = client.get(short_url,headers=headers).data
+    assert (expected in actual)
+
+def test_redirect_tablet(client):
+    ua_string = '''Mozilla/5.0(iPad; U; CPU iPhone OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B314 Safari/531.21.10'''
+    expected = 'https://test.tablet'
+    headers = { 'User-Agent' : ua_string }
+    short_url = '/50617f9'
+    actual = client.get(short_url,headers=headers).data
+    assert (expected in actual)
