@@ -27,7 +27,7 @@
 Save google.com and m.google.com to Jason Seaver's list of urls
 
         curl -X POST -H 'Content-Type: application/json' \
-         -d'{"urls": {"desktop":"https://google.com", "mobile": "https://m.google.com"}}' \
+         -d'{"urls": {"desktop":"https://google.com", "mobile": "https://m.google.com", "tablet":"https://tablet.google.com"}}' \
          localhost:9001/api/v1/users/jason@seaver.com/urls
 Request the shortened url for google.com belonging to Jason Seaver
 
@@ -37,4 +37,4 @@ Request the shortened url for google.com belonging to Jason Seaver
          localhost:9001/9ca01ce
 Request a list of all Jason Seaver's urls
 
-        curl -X GET localhost:5000/api/v1/users/jason@seaver.com/urls
+        curl -X GET localhost:9001/api/v1/users/jason@seaver.com/urls
