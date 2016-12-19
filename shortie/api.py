@@ -28,7 +28,7 @@ def short_route(url_hash):
 
     abort(404)
 
-@app.route("/api/v1/user/<user_id>/urls", methods=["POST"])
+@app.route("/api/v1/users/<user_id>/urls", methods=["POST"])
 def shorten(user_id):
     if  not request.get_json():
         abort(400)

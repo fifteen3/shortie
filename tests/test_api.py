@@ -37,7 +37,7 @@ def test_store_urls(client):
     urls = { 'desktop' : 'https://test.desktop', 'mobile' : 'https://test.mobile', 'tablet' : 'https://test.tablet'}
     payload = json.dumps({ 'urls' : urls })
     expected =  api.encode_url(urls['desktop'],'jason@seaver.com')[:7]
-    response = client.post('/api/v1/user/jason@seaver.com/urls', data=payload, content_type = 'application/json')
+    response = client.post('/api/v1/users/jason@seaver.com/urls', data=payload, content_type = 'application/json')
     actual = json.loads(response.data)
     assert (expected in actual['data'][0]['shortie'])
 
