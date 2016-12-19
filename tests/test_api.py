@@ -1,8 +1,8 @@
 import pytest
 import json
 import re
-from shortie import api,manage
-from shortie.url_assistant import UrlFinder,UrlEncoder
+from shortie import api,manage,db
+from shortie.url_assistant import UrlEncoder
 from shortie.user import User
 
 @pytest.fixture(scope='function')
@@ -27,7 +27,7 @@ def test_root(client):
 def test_encode():
     """Encoding url test"""
     url = "http://www.foo.com"
-    user = User("user@users.com")
+    user = User(db=db,email="user@users.com")
     url_encoder = UrlEncoder(url=url)
     long_hash = url_encoder.encode_url(user)
     pattern = '[A-Za-z0-9]+'
@@ -35,7 +35,7 @@ def test_encode():
 
 def test_get_user_id(client):
     """Test getting a users id"""
-    user = User('jason@seaver.com')
+    user = User(db=db,email='jason@seaver.com')
     actual_user_id = user.get_user_id()
     expected = 1
     assert (expected == actual_user_id)
@@ -45,7 +45,7 @@ def test_store_urls(client):
     urls = { 'desktop' : 'https://test.desktop', 'mobile' : 'https://test.mobile', 'tablet' : 'https://test.tablet'}
     actual = insert_case(client,urls)
     url_encoder = UrlEncoder(url=urls['desktop'])
-    user = User('jason@seaver.com')
+    user = User(db=db,email='jason@seaver.com')
     expected =  url_encoder.encode_url(user)[:7]
     assert (expected in actual['data'][0]['shortie'])
 
@@ -90,7 +90,7 @@ def test_user_urls(client):
     request_redirect(client,short_url)
     request_redirect(client,short_url)
     request_redirect(client,short_url)
-    user = User('jason@seaver.com')
+    user = User(db=db,email='jason@seaver.com')
     rows = user.list_urls()
     assert (len(rows) > 0)
     for row in rows:
