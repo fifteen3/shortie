@@ -3,6 +3,7 @@
     virtualenv PENV
     source PENV/bin/activate
     pip install -r requirements.txt
+    pip install -e .
 
 
 ## Run tests
