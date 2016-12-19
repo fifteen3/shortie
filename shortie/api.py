@@ -26,7 +26,6 @@ def short_route(url_hash):
 
         url_finder = UrlFinder(db=db,url_hash=url_hash,ua_string=ua_string)
         url = url_finder.lookup_url()
-
         if url:
             return redirect(url,code=302)
 
@@ -79,4 +78,4 @@ def format_json_response(data,errors,total):
     return json.dumps(response)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=9001)
