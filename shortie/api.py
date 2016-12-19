@@ -32,13 +32,14 @@ def short_route(url_hash):
 
     abort(404)
 
-@app.route("/api/v1/users/<user_id>/urls", methods=["POST"])
-def shorten(user_id):
+# save a set of urls for a user
+@app.route("/api/v1/users/<email>/urls", methods=["POST"])
+def shorten(email):
     if  not request.get_json():
         abort(400)
     data = []
     errors = []
-    user = User(user_id)
+    user = User(db=db,email=email)
 
     # desktop will be the url used to hash
     urls =  request.get_json()['urls']
@@ -55,19 +56,21 @@ def shorten(user_id):
         data.append({ "shortie" : shortened_url })
     else:
         errors.append({"message" : "save failed."})
-    return format_json_response(data,errors)
+    return format_json_response(data,errors,len(data))
 
+# get list of user's urls
 @app.route("/api/v1/users/<email>/urls")
 def url_list(email):
-   user = User(email)
+   user = User(db=db,email=email)
    urls = user.list_urls()
    errors = []
-   return format_json_response(urls,errors)
+   return format_json_response(urls,errors,len(urls))
 
-def format_json_response(data,errors):
+def format_json_response(data,errors,total):
+    """api response format"""
     meta = {}
     meta["errors"] = errors
-    meta["total"] = len(data)
+    meta["total"] = total
 
     response = {}
     response['data'] = data
