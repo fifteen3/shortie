@@ -2,7 +2,6 @@ from flask import Flask, request, abort, redirect
 from werkzeug.contrib.fixers import ProxyFix
 import json
 import re
-import sqlite3
 import db
 from user import User
 from url_assistant import UrlFinder,UrlEncoder,UrlSaver
@@ -15,6 +14,7 @@ fqdn = "http://localhost:9001"
 def root_route():
     return "Welcome to Shortie."
 
+# redirect to device specific url
 @app.route("/<url_hash>")
 def short_route(url_hash):
 
@@ -24,7 +24,7 @@ def short_route(url_hash):
     if (re.match("[A-Za-z0-9]{7,10}",url_hash)):
         ua_string = request.headers.get('User-Agent');
 
-        url_finder = UrlFinder(url_hash=url_hash,ua_string=ua_string)
+        url_finder = UrlFinder(db=db,url_hash=url_hash,ua_string=ua_string)
         url = url_finder.lookup_url()
 
         if url:
