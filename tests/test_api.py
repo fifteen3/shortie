@@ -66,3 +66,11 @@ def test_redirect_tablet(client):
     short_url = '/50617f9'
     actual = client.get(short_url,headers=headers).data
     assert (expected in actual)
+
+def test_user_urls(client):
+    rows = api.list_urls_by_user('jason@seaver.com')
+    assert (len(rows) > 0)
+    for row in rows:
+        assert (row['url'])
+        assert (row['url_type'])
+        assert (row['visits'])

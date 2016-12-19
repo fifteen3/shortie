@@ -48,6 +48,42 @@ def shorten(user_id):
         errors.append({"message" : "save failed."})
     return format_json_response(data,errors)
 
+@app.route("/api/v1/users/<email>/urls")
+def url_list(email):
+   urls = list_urls_by_user(email)
+   errors = []
+   return format_json_response(urls,errors)
+
+def format_json_response(data,errors):
+    meta = {}
+    meta["errors"] = errors
+    meta["total"] = len(data)
+    response = {}
+    response['data'] = data
+    response['meta'] = meta
+    return json.dumps(response)
+
+def shorten_url(long_hash):
+    host = 'http://localhost:5000'
+    shortened_url = "{}{}".format(host,  long_hash[:7])
+    return shortened_url
+
+def encode_url(url,user):
+    url_bytes = url.encode('utf-8')
+    user_bytes = user.encode('utf-8')
+    m = hashlib.sha1(url_bytes + user_bytes)
+    long_hash = m.hexdigest()
+    return long_hash
+
+def lookup_device_type(ua_string):
+    dt = "desktop"
+    ua = user_agents.parse(ua_string)
+    if ua.is_mobile:
+        dt = "mobile"
+    elif ua.is_tablet:
+        dt = "tablet"
+    return dt
+
 def store_urls(urls,encoded_url,user):
     conn = db.get_db()
     c = conn.cursor()
@@ -74,33 +110,12 @@ def get_user_id(email):
     if not c:
         return None
     try:
-        print email
         c.execute('SELECT rowid FROM users WHERE email = ?', [email])
         user_id = c.fetchone()[0]
         return user_id
     except (TypeError,sqlite3.Error) as e:
         print e.message
 
-def format_json_response(data,errors):
-    meta = {}
-    meta["errors"] = errors
-    meta["total"] = len(data)
-    response = {}
-    response['data'] = data
-    response['meta'] = meta
-    return json.dumps(response)
-
-def shorten_url(long_hash):
-    host = 'http://localhost:5000'
-    shortened_url = "{}{}".format(host,  long_hash[:7])
-    return shortened_url
-
-def encode_url(url,user):
-    url_bytes = url.encode('utf-8')
-    user_bytes = user.encode('utf-8')
-    m = hashlib.sha1(url_bytes + user_bytes)
-    long_hash = m.hexdigest()
-    return long_hash
 
 def lookup_url(url_hash,device):
     conn = db.get_db()
@@ -115,14 +130,22 @@ def lookup_url(url_hash,device):
             print e.message
         return url
 
-def lookup_device_type(ua_string):
-    dt = "desktop"
-    ua = user_agents.parse(ua_string)
-    if ua.is_mobile:
-        dt = "mobile"
-    elif ua.is_tablet:
-        dt = "tablet"
-    return dt
+
+def list_urls_by_user(email):
+    user_id = get_user_id(email)
+    conn = db.get_db()
+    c = conn.cursor()
+    list_query = '''SELECT urls.url as url,v.url_type as url_type,COUNT(v.short_hash) as visits, (julianday('now') - julianday(hashes.created)) as since FROM users AS u JOIN url_hashes AS hashes ON (u.rowid = hashes.user_id) JOIN urls USING (short_hash) JOIN visits AS v ON (urls.short_hash = v.short_hash AND urls.url_type = v.url_type) WHERE u.rowid = ? GROUP BY v.url_type'''
+    c.execute(list_query, [user_id])
+    rows = c.fetchall()
+    data = []
+    for n in rows:
+        row = {}
+        for g in n.keys():
+           row[g] = n[g]
+        data.append(row)
+
+    return data
 
 if __name__ == '__main__':
     app.run()
